@@ -2,8 +2,8 @@ import express from "express";
 import ejs from "ejs";
 import bodyParser from "body-parser";
 import pg from "pg";
-import 'dotenv/config'
-import crypto from "crypto";
+import 'dotenv/config';
+import md5 from "md5";
 
 const app = express();
 app.set('view engine','ejs')
@@ -37,11 +37,9 @@ app.get("/register",(req,res)=>{
 
 app.post("/register",async (req,res) => {
     const name = req.body.username;
-    const password = req.body.password;
-    var cipher = crypto.createCipher(process.env.ALGORITHM, process.env.KEY);  
-    var encrypted = cipher.update(password, 'utf8', 'hex') + cipher.final('hex');
+    const password = md5(req.body.password);
     try{
-        const result = await db.query("INSERT INTO users(username,password) VALUES ($1,$2)",[name,encrypted]);
+        const result = await db.query("INSERT INTO users(username,password) VALUES ($1,$2)",[name,password]);
         res.render("secrets")
     }
     catch(err){
@@ -51,13 +49,11 @@ app.post("/register",async (req,res) => {
 })
 app.post("/login", async(req,res)=>{
     const username = req.body.username;
-    const password = req.body.password;
+    const password = md5(req.body.password);
     try{
         const result = await db.query("SELECT * FROM users WHERE username = $1",[username]);
         if(result.rows.length !== 0){
-            var decipher = crypto.createDecipher(process.env.ALGORITHM, process.env.KEY);
-            var decrypted = decipher.update(result.rows[0].password, 'hex', 'utf8') + decipher.final('utf8');
-            if( decrypted === password){
+            if( result.rows[0].password === password){
                 res.render("secrets")
             }  
         }
