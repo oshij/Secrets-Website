@@ -2,23 +2,25 @@ import express from "express";
 import ejs from "ejs";
 import bodyParser from "body-parser";
 import pg from "pg";
+import 'dotenv/config'
 
 const app = express();
-const port = 3000;
 app.set('view engine','ejs')
 app.use(express.static("public"))
 app.use(bodyParser.urlencoded({extended : true}));
 
 const db = new pg.Client({
-    user : "postgres",
-    database : "world",
-    host : "localhost",
-    password : "A9wksB@1",
-    port : 5432,
+    user : process.env.DB_USER,
+    database : process.env.DB_DATABASE,
+    host : process.env.DB_HOST,
+    password : process.env.DB_PASSWORD,
+    port : process.env.DB_PORT,
 
 })
 
 db.connect();
+console.log("Database Connected !!!!");
+
 
 app.get("/",(req,res) => { 
     res.render("home");
@@ -58,6 +60,6 @@ app.post("/login", async(req,res)=>{
     }
 })
 
-app.listen(port,()=>{
-    console.log(`Server is listening on port : ${port}`)
+app.listen(process.env.PORT,()=>{
+    console.log(`Server is listening on port : ${process.env.PORT}`)
 })
